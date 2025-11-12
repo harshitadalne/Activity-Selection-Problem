@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Selection Algorithm</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .activities-list {
+            margin-bottom: 30px;
+        }
+
+        .activity-item {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .activity-item.selected {
+            border-color: #28a745;
+            background: #d4edda;
+            transform: scale(1.02);
+        }
+
+        .activity-item.rejected {
+            border-color: #dc3545;
+            background: #f8d7da;
+            opacity: 0.6;
+        }
+
+        .activity-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .activity-name {
+            font-weight: 600;
+            color: #333;
+            min-width: 100px;
+        }
+
+        .activity-time {
+            color: #666;
+        }
+
+        .activity-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .status-selected {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-rejected {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            padding: 5px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-remove:hover {
+            background: #c82333;
+        }
+
+        .visualization {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .timeline {
+            position: relative;
+            height: auto;
+            min-height: 100px;
+            margin-top: 20px;
+        }
+
+        .timeline-bar {
+            position: relative;
+            height: 40px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            overflow: visible;
+        }
+
+        .activity-bar {
+            position: absolute;
+            height: 100%;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .activity-bar.selected {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            box-shadow: 0 2px 10px rgba(40, 167, 69, 0.4);
+        }
+
+        .activity-bar.rejected {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            opacity: 0.5;
+        }
+
+        .result-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .result-section h3 {
+            margin-bottom: 10px;
+        }
+
+        .result-count {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .algorithm-steps {
+            background: white;
+            color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .algorithm-steps h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .step {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .input-row {
+                flex-direction: column;
+            }
+
+            .activity-info {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Activity Selection Problem</h1>
+        <p class="subtitle">Greedy Algorithm - Maximum Non-Overlapping Activities</p>
+
+        <div class="input-section">
+            <h3 style="margin-bottom: 15px; color: #667eea;">Add New Activity</h3>
+            <div class="input-row">
+                <div class="input-group">
+                    <label for="activityName">Activity Name</label>
+                    <input type="text" id="activityName" placeholder="e.g., Meeting A">
+                </div>
+                <div class="input-group">
+                    <label for="startTime">Start Time</label>
+                    <input type="number" id="startTime" placeholder="e.g., 1" min="0">
+                </div>
+                <div class="input-group">
+                    <label for="endTime">End Time</label>
+                    <input type="number" id="endTime" placeholder="e.g., 4" min="0">
+                </div>
+                <div style="align-self: flex-end;">
+                    <button class="btn-primary" onclick="addActivity()">Add Activity</button>
+                </div>
+            </div>
+            <button class="btn-secondary" onclick="loadSampleData()">Load Sample Data</button>
+        </div>
+
+        <div class="activities-list" id="activitiesList">
+            <h3 style="margin-bottom: 15px; color: #333;">Activities List</h3>
+        </div>
+
+        <button class="btn-success" onclick="runAlgorithm()" style="width: 100%; font-size: 18px;">
+            🚀 Run Greedy Algorithm
+        </button>
+
+        <div class="visualization" id="visualization" style="display: none;">
+            <h3 style="margin-bottom: 15px; color: #333;">Timeline Visualization</h3>
+            <div class="timeline" id="timeline"></div>
+        </div>
+
+        <div class="result-section" id="resultSection" style="display: none;">
+            <h3>Algorithm Results</h3>
+            <div class="result-count">
+                Maximum Activities: <span id="maxCount">0</span>
+            </div>
+            <div>Selected Activities: <span id="selectedActivities"></span></div>
+            
+            <div class="algorithm-steps">
+                <h4>Algorithm Steps:</h4>
+                <div id="algorithmSteps"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let activities = [];
+
+        function addActivity() {
+            const name = document.getElementById('activityName').value.trim();
+            const start = parseInt(document.getElementById('startTime').value);
+            const end = parseInt(document.getElementById('endTime').value);
+
+            if (!name || isNaN(start) || isNaN(end)) {
+                alert('Please fill all fields with valid values');
+                return;
+            }
+
+            if (start >= end) {
+                alert('End time must be greater than start time');
+                return;
+            }
+
+            activities.push({
+                name: name,
+                start: start,
+                end: end,
+                selected: false,
+                rejected: false
+            });
+
+            document.getElementById('activityName').value = '';
+            document.getElementById('startTime').value = '';
+            document.getElementById('endTime').value = '';
+
+            displayActivities();
+        }
+
+        function loadSampleData() {
+            activities = [
+                { name: 'Activity A', start: 1, end: 4, selected: false, rejected: false },
+                { name: 'Activity B', start: 3, end: 5, selected: false, rejected: false },
+                { name: 'Activity C', start: 0, end: 6, selected: false, rejected: false },
+                { name: 'Activity D', start: 5, end: 7, selected: false, rejected: false },
+                { name: 'Activity E', start: 8, end: 9, selected: false, rejected: false },
+                { name: 'Activity F', start: 5, end: 9, selected: false, rejected: false }
+            ];
+            displayActivities();
+        }
+
+        function removeActivity(index) {
+            activities.splice(index, 1);
+            displayActivities();
+        }
+
+        function displayActivities() {
+            const list = document.getElementById('activitiesList');
+            if (activities.length === 0) {
+                list.innerHTML = '<h3 style="margin-bottom: 15px; color: #333;">Activities List</h3><p style="color: #666;">No activities added yet. Add some activities or load sample data.</p>';
+                return;
+            }
+
+            let html = '<h3 style="margin-bottom: 15px; color: #333;">Activities List</h3>';
+            activities.forEach((activity, index) => {
+                let statusClass = '';
+                let statusHtml = '';
+                
+                if (activity.selected) {
+                    statusClass = 'selected';
+                    statusHtml = '<span class="activity-status status-selected">✓ Selected</span>';
+                } else if (activity.rejected) {
+                    statusClass = 'rejected';
+                    statusHtml = '<span class="activity-status status-rejected">✗ Rejected</span>';
+                }
+
+                html += `
+                    <div class="activity-item ${statusClass}">
+                        <div class="activity-info">
+                            <div class="activity-name">${activity.name}</div>
+                            <div class="activity-time">Start: ${activity.start} | End: ${activity.end}</div>
+                            ${statusHtml}
+                        </div>
+                        <button class="btn-remove" onclick="removeActivity(${index})">Remove</button>
+                    </div>
+                `;
+            });
+
+            list.innerHTML = html;
+        }
+
+        function runAlgorithm() {
+            if (activities.length === 0) {
+                alert('Please add some activities first');
+                return;
+            }
+
+            // Reset states
+            activities.forEach(a => {
+                a.selected = false;
+                a.rejected = false;
+            });
+
+            const steps = [];
+            
+            // Step 1: Sort by end time (Greedy choice)
+            steps.push('Step 1: Sort activities by end time (earliest finish time first)');
+            const sorted = [...activities].sort((a, b) => a.end - b.end);
+
+            // Step 2: Select activities
+            steps.push('Step 2: Select first activity (earliest finish time)');
+            sorted[0].selected = true;
+            let lastSelected = sorted[0];
+            let selectedCount = 1;
+            const selectedNames = [sorted[0].name];
+
+            steps.push(`Selected: ${sorted[0].name} (${sorted[0].start}-${sorted[0].end})`);
+
+            for (let i = 1; i < sorted.length; i++) {
+                if (sorted[i].start >= lastSelected.end) {
+                    sorted[i].selected = true;
+                    lastSelected = sorted[i];
+                    selectedCount++;
+                    selectedNames.push(sorted[i].name);
+                    steps.push(`Selected: ${sorted[i].name} (${sorted[i].start}-${sorted[i].end}) - No overlap with previous`);
+                } else {
+                    sorted[i].rejected = true;
+                    steps.push(`Rejected: ${sorted[i].name} (${sorted[i].start}-${sorted[i].end}) - Overlaps with ${lastSelected.name}`);
+                }
+            }
+
+            // Update original activities array
+            activities.forEach(activity => {
+                const found = sorted.find(s => s.name === activity.name);
+                activity.selected = found.selected;
+                activity.rejected = found.rejected;
+            });
+
+            displayActivities();
+            displayVisualization();
+            displayResults(selectedCount, selectedNames, steps);
+        }
+
+        function displayVisualization() {
+            const visualization = document.getElementById('visualization');
+            const timeline = document.getElementById('timeline');
+            visualization.style.display = 'block';
+
+            const maxTime = Math.max(...activities.map(a => a.end));
+            
+            let html = '';
+            activities.forEach(activity => {
+                const leftPercent = (activity.start / maxTime) * 100;
+                const widthPercent = ((activity.end - activity.start) / maxTime) * 100;
+                const statusClass = activity.selected ? 'selected' : activity.rejected ? 'rejected' : '';
+
+                html += `
+                    <div class="timeline-bar">
+                        <div class="activity-bar ${statusClass}" 
+                             style="left: ${leftPercent}%; width: ${widthPercent}%;">
+                            ${activity.name} (${activity.start}-${activity.end})
+                        </div>
+                    </div>
+                `;
+            });
+
+            timeline.innerHTML = html;
+        }
+
+        function displayResults(count, names, steps) {
+            const resultSection = document.getElementById('resultSection');
+            resultSection.style.display = 'block';
+
+            document.getElementById('maxCount').textContent = count;
+            document.getElementById('selectedActivities').textContent = names.join(', ');
+
+            const stepsHtml = steps.map(step => `<div class="step">${step}</div>`).join('');
+            document.getElementById('algorithmSteps').innerHTML = stepsHtml;
+
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Load sample data on start
+        loadSampleData();
+    </script>
+</body>
+</html>
